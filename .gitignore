@@ -1,0 +1,8 @@
+_expat/bin
+_expat/src
+_zlib/ios
+_zlib/src
+exiv2/ios
+exiv2/src
+*.bz2
+*.gz
