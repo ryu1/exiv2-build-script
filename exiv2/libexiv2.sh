@@ -122,24 +122,28 @@ buildExiv2ForIPhoneOS()
         exit 1
     fi
 
+    EXPAT_DIR=$TARBALLDIR/../_expat
+
     cd $LIB_SRC
 
-    echo Building Exiv2 for iPhoneSimulator
-    export CXXFLAGS="-O3 -arch i386 -arch x86_64 -isysroot $XCODE_ROOT/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk -mios-simulator-version-min=${IPHONE_SDKVERSION} -Wno-error-implicit-function-declaration"
-    export CPPFLAGS=""
-    export LDFLAGS="-arch i386 -arch x86_64 -isysroot $XCODE_ROOT/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk -mios-simulator-version-min=${IPHONE_SDKVERSION}"
-    make distclean
-    ./configure --host=x86_64-apple-darwin --prefix=$PREFIXDIR/iphonesim-build --disable-dependency-tracking --enable-static=yes --enable-shared=no --disable-dependency-tracking --enable-commercial --disable-nls --disable-lensdata --enable-xmp --with-expat=../_expat/bin/iPhoneSimulator10.3-x86_64.sdk--without-libiconv-prefix --without-zlib # --with-zlib=$ZLIB_PREFIX_DIR/iphonesim-build --disable-xmp
-    make
-    make install
-    doneSection
+    # echo Building Exiv2 for iPhoneSimulator
+    # export CXXFLAGS="-O3 -arch i386 -arch x86_64 -isysroot $XCODE_ROOT/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk -mios-simulator-version-min=${IPHONE_SDKVERSION} -Wno-error-implicit-function-declaration"
+    # export CPPFLAGS=""
+    # export LDFLAGS="-arch i386 -arch x86_64 -isysroot $XCODE_ROOT/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk -mios-simulator-version-min=${IPHONE_SDKVERSION}"
+    # make distclean
+    # ./configure --host=x86_64-apple-darwin --prefix=$PREFIXDIR/iphonesim-build --disable-dependency-tracking --enable-static=yes --enable-shared=no --disable-dependency-tracking --enable-commercial --disable-nls --disable-lensdata --with-expat=$EXPAT_DIR --without-libiconv-prefix --without-zlib # --with-zlib=$ZLIB_PREFIX_DIR/iphonesim-build --disable-xmp
+    # make
+    # make install
+    # doneSection
 
     echo Building Exiv2 for iPhone
     export CXXFLAGS="-O3 -arch armv7 -arch armv7s -arch arm64 -isysroot $XCODE_ROOT/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk -mios-version-min=${IPHONE_SDKVERSION}"
     export CPPFLAGS=""
+    export CPP="$(xcrun --sdk iphoneos -f cc) -E -D __arm__=1"
     export LDFLAGS="-arch armv7 -arch armv7s -arch arm64 -isysroot $XCODE_ROOT/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk -mios-version-min=${IPHONE_SDKVERSION}"
+    make clean
     make distclean
-    ./configure --host=arm-apple-darwin --prefix=$PREFIXDIR/iphone-build --disable-dependency-tracking --enable-static=yes --enable-shared=no --disable-dependency-tracking --enable-commercial --disable-nls --disable-lensdata --disable-xmp --without-libiconv-prefix --without-zlib # --with-zlib=$ZLIB_PREFIX_DIR/iphone-build
+    ./configure --host=arm-apple-darwin --prefix=$PREFIXDIR/iphone-build --disable-dependency-tracking --enable-static=yes --enable-shared=no --disable-dependency-tracking --enable-commercial --disable-nls --disable-lensdata --with-expat=$EXPAT_DIR --without-libiconv-prefix --without-zlib # --with-zlib=$ZLIB_PREFIX_DIR/iphone-build --disable-xmp
     make
     make install
     doneSection
