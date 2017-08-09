@@ -6,3 +6,6 @@ exiv2/ios
 exiv2/src
 *.bz2
 *.gz
+exiv2/exiv2-trunk
+_expat/expat-2.2.3
+_expat/ios
