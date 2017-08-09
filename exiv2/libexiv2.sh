@@ -122,7 +122,7 @@ buildExiv2ForIPhoneOS()
         exit 1
     fi
 
-    EXPAT_DIR=$TARBALLDIR/../_expat
+    EXPAT_DIR=$TARBALLDIR/../_expat/ios
 
     cd $LIB_SRC
 
@@ -139,7 +139,7 @@ buildExiv2ForIPhoneOS()
     echo Building Exiv2 for iPhone
     export CXXFLAGS="-O3 -arch armv7 -arch armv7s -arch arm64 -isysroot $XCODE_ROOT/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk -mios-version-min=${IPHONE_SDKVERSION}"
     export CPPFLAGS=""
-    export CPP="$(xcrun --sdk iphoneos -f cc) -E -D __arm__=1"
+    #export CPP="$(xcrun --sdk iphoneos -f cc) -E -D __arm__=1"
     export LDFLAGS="-arch armv7 -arch armv7s -arch arm64 -isysroot $XCODE_ROOT/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk -mios-version-min=${IPHONE_SDKVERSION}"
     make clean
     make distclean

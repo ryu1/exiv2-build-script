@@ -46,8 +46,8 @@ fi
 
 mkdir -p "${CURRENTPATH}/src"
 mkdir -p "${CURRENTPATH}/bin"
-mkdir -p "${CURRENTPATH}/lib"
-mkdir -p "${CURRENTPATH}/framework"
+mkdir -p "${CURRENTPATH}/ios/lib"
+#mkdir -p "${CURRENTPATH}/ios/framework"
 
 for ARCH in ${ARCHS}
 do
@@ -112,10 +112,10 @@ do
 done
 echo "3-----------------"
 echo "Build library..."
-lipo -create ${CURRENTPATH}/bin/iPhoneSimulator${SDKVERSION}-i386.sdk/lib/libexpat.a ${CURRENTPATH}/bin/iPhoneSimulator${SDKVERSION}-x86_64.sdk/lib/libexpat.a ${CURRENTPATH}/bin/iPhoneOS${SDKVERSION}-armv7.sdk/lib/libexpat.a ${CURRENTPATH}/bin/iPhoneOS${SDKVERSION}-armv7s.sdk/lib/libexpat.a ${CURRENTPATH}/bin/iPhoneOS${SDKVERSION}-arm64.sdk/lib/libexpat.a -output ${CURRENTPATH}/lib/libexpat.a
-lipo -info ${CURRENTPATH}/lib/libexpat.a
-mkdir -p ${CURRENTPATH}/include/expat
-cp  ${CURRENTPATH}/bin/iPhoneSimulator${SDKVERSION}-i386.sdk/include/expat* ${CURRENTPATH}/include/expat
+lipo -create ${CURRENTPATH}/bin/iPhoneSimulator${SDKVERSION}-i386.sdk/lib/libexpat.a ${CURRENTPATH}/bin/iPhoneSimulator${SDKVERSION}-x86_64.sdk/lib/libexpat.a ${CURRENTPATH}/bin/iPhoneOS${SDKVERSION}-armv7.sdk/lib/libexpat.a ${CURRENTPATH}/bin/iPhoneOS${SDKVERSION}-armv7s.sdk/lib/libexpat.a ${CURRENTPATH}/bin/iPhoneOS${SDKVERSION}-arm64.sdk/lib/libexpat.a -output ${CURRENTPATH}/ios/lib/libexpat.a
+lipo -info ${CURRENTPATH}/ios/lib/libexpat.a
+mkdir -p ${CURRENTPATH}/ios/include/
+cp  ${CURRENTPATH}/bin/iPhoneSimulator${SDKVERSION}-i386.sdk/include/expat* ${CURRENTPATH}/ios/include/
 echo "Building done."
 
 
