@@ -17,15 +17,17 @@
 # Specific iPhone SDK
 # : ${IPHONE_SDKVERSION:=8.1}
 
+IPHONEOS_DEPLOYMENT_TARGET=8.0
+
 : ${XCODE_ROOT:=`xcode-select -print-path`}
 
 : ${TARBALLDIR:=`pwd`}
 : ${SRCDIR:=`pwd`/src}
 : ${IOSBUILDDIR:=`pwd`/ios/build}
-: ${OSXBUILDDIR:=`pwd`/osx/build}
+#: ${OSXBUILDDIR:=`pwd`/osx/build}
 : ${PREFIXDIR:=`pwd`/ios/prefix}
 : ${IOSFRAMEWORKDIR:=`pwd`/ios/framework}
-: ${OSXFRAMEWORKDIR:=`pwd`/osx/framework}
+#: ${OSXFRAMEWORKDIR:=`pwd`/osx/framework}
 
 LIB_TARBALL=$TARBALLDIR/exiv2-$LIB_VERSION.tar.gz
 LIB_SRC=$SRCDIR/exiv2-trunk
@@ -59,10 +61,10 @@ cleanEverythingReadyToStart()
 {
     echo Cleaning everything before we start to build...
 
-    rm -rf iphone-build iphonesim-build
+    #rm -rf iphone-build iphonesim-build
     rm -rf $IOSBUILDDIR
     rm -rf $PREFIXDIR
-    rm -rf $IOSFRAMEWORKDIR/$FRAMEWORK_NAME.framework
+    rm -rf $IOSFRAMEWORKDIR
 
     doneSection
 }
@@ -83,11 +85,17 @@ downloadExiv2()
 
 unpackExiv2()
 {
+    cd $TARBALLDIR
+
     [ -f "$LIB_TARBALL" ] || abort "Source tarball missing."
 
     echo Unpacking libexiv2 into $SRCDIR...
 
-    [ -d $SRCDIR ]    || mkdir -p $SRCDIR
+    if [ -d $SRCDIR ]; then
+        rm -rf $SRCDIR
+    fi
+    mkdir -p $SRCDIR
+
     [ -d $LIB_SRC ] || ( cd $SRCDIR; tar xfj $LIB_TARBALL )
     [ -d $LIB_SRC ] && echo "    ...unpacked as $LIB_SRC"
 
@@ -95,6 +103,48 @@ unpackExiv2()
 }
 
 #===============================================================================
+
+buildExiv2ForIPhoneOSSimulator()
+{
+    export CC=$XCODE_ROOT/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
+    export CC_BASENAME=clang
+
+    export CXX=$XCODE_ROOT/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++
+    export CXX_BASENAME=clang++
+
+    # avoid the `LDFLAGS` env to include the homebrew Cellar
+    export LDFLAGS=""
+
+    # C preprocessor
+    export CPP=$XCODE_ROOT/Toolchains/XcodeDefault.xctoolchain/usr/bin/cpp
+
+    # # Ensure that the zlib project has been created in the right path an compiled
+    # ZLIB_TARBALL_DIR=$TARBALLDIR/../_zlib
+    # if [ ! -s $ZLIB_TARBALL_DIR ]; then
+    #     echo " !!! You need to create the directory $ZLIB_TARBALL_DIR and put the `libz.sh` script in it"
+    #     exit 1
+    # fi
+    # ZLIB_PREFIX_DIR=$ZLIB_TARBALL_DIR/ios/prefix
+    # if [ ! -s $ZLIB_PREFIX_DIR ]; then
+    #     echo " !!! You need to run the `libz.sh` script in $ZLIB_TARBALL_DIR"
+    #     exit 1
+    # fi
+
+    EXPAT_DIR=$TARBALLDIR/../_expat/ios
+
+    cd $LIB_SRC
+
+    echo Building Exiv2 for iPhoneSimulator
+    export CXXFLAGS="-O3 -arch i386 -arch x86_64 -isysroot $XCODE_ROOT/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk -mios-simulator-version-min=${IPHONEOS_DEPLOYMENT_TARGET} -Wno-error-implicit-function-declaration"
+    export CPPFLAGS=""
+    export LDFLAGS="-arch i386 -arch x86_64 -isysroot $XCODE_ROOT/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk -mios-simulator-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"
+    ./configure --host=x86_64-apple-darwin --prefix=$PREFIXDIR/iphonesim-build --disable-dependency-tracking --enable-static=yes --enable-shared=no --disable-dependency-tracking --enable-commercial --disable-nls --disable-lensdata --with-expat=$EXPAT_DIR --without-libiconv-prefix --without-zlib # --with-zlib=$ZLIB_PREFIX_DIR/iphonesim-build --disable-xmp
+    make clean
+    make distclean
+    make -j4
+    make install
+    doneSection
+}
 
 buildExiv2ForIPhoneOS()
 {
@@ -110,41 +160,31 @@ buildExiv2ForIPhoneOS()
     # C preprocessor
     export CPP=$XCODE_ROOT/Toolchains/XcodeDefault.xctoolchain/usr/bin/cpp
 
-    # Ensure that the zlib project has been created in the right path an compiled
-    ZLIB_TARBALL_DIR=$TARBALLDIR/../_zlib
-    if [ ! -s $ZLIB_TARBALL_DIR ]; then
-        echo " !!! You need to create the directory $ZLIB_TARBALL_DIR and put the `libz.sh` script in it"
-        exit 1
-    fi
-    ZLIB_PREFIX_DIR=$ZLIB_TARBALL_DIR/ios/prefix
-    if [ ! -s $ZLIB_PREFIX_DIR ]; then
-        echo " !!! You need to run the `libz.sh` script in $ZLIB_TARBALL_DIR"
-        exit 1
-    fi
+    # # Ensure that the zlib project has been created in the right path an compiled
+    # ZLIB_TARBALL_DIR=$TARBALLDIR/../_zlib
+    # if [ ! -s $ZLIB_TARBALL_DIR ]; then
+    #     echo " !!! You need to create the directory $ZLIB_TARBALL_DIR and put the `libz.sh` script in it"
+    #     exit 1
+    # fi
+    # ZLIB_PREFIX_DIR=$ZLIB_TARBALL_DIR/ios/prefix
+    # if [ ! -s $ZLIB_PREFIX_DIR ]; then
+    #     echo " !!! You need to run the `libz.sh` script in $ZLIB_TARBALL_DIR"
+    #     exit 1
+    # fi
 
     EXPAT_DIR=$TARBALLDIR/../_expat/ios
 
     cd $LIB_SRC
 
-    # echo Building Exiv2 for iPhoneSimulator
-    # export CXXFLAGS="-O3 -arch i386 -arch x86_64 -isysroot $XCODE_ROOT/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk -mios-simulator-version-min=${IPHONE_SDKVERSION} -Wno-error-implicit-function-declaration"
-    # export CPPFLAGS=""
-    # export LDFLAGS="-arch i386 -arch x86_64 -isysroot $XCODE_ROOT/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IPHONE_SDKVERSION}.sdk -mios-simulator-version-min=${IPHONE_SDKVERSION}"
-    # make distclean
-    # ./configure --host=x86_64-apple-darwin --prefix=$PREFIXDIR/iphonesim-build --disable-dependency-tracking --enable-static=yes --enable-shared=no --disable-dependency-tracking --enable-commercial --disable-nls --disable-lensdata --with-expat=$EXPAT_DIR --without-libiconv-prefix --without-zlib # --with-zlib=$ZLIB_PREFIX_DIR/iphonesim-build --disable-xmp
-    # make
-    # make install
-    # doneSection
-
     echo Building Exiv2 for iPhone
-    export CXXFLAGS="-O3 -arch armv7 -arch armv7s -arch arm64 -isysroot $XCODE_ROOT/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk -mios-version-min=${IPHONE_SDKVERSION}"
+    export CXXFLAGS="-O3 -arch armv7 -arch armv7s -arch arm64 -isysroot $XCODE_ROOT/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"
     export CPPFLAGS=""
     #export CPP="$(xcrun --sdk iphoneos -f cc) -E -D __arm__=1"
-    export LDFLAGS="-arch armv7 -arch armv7s -arch arm64 -isysroot $XCODE_ROOT/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk -mios-version-min=${IPHONE_SDKVERSION}"
+    export LDFLAGS="-arch armv7 -arch armv7s -arch arm64 -isysroot $XCODE_ROOT/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IPHONE_SDKVERSION}.sdk -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"
+    ./configure --host=arm-apple-darwin --prefix=$PREFIXDIR/iphone-build --disable-dependency-tracking --enable-static=yes --enable-shared=no --disable-dependency-tracking --enable-commercial --disable-nls --disable-lensdata --with-expat=$EXPAT_DIR --without-libiconv-prefix --without-zlib # --with-zlib=$ZLIB_PREFIX_DIR/iphone-build --disable-xmp
     make clean
     make distclean
-    ./configure --host=arm-apple-darwin --prefix=$PREFIXDIR/iphone-build --disable-dependency-tracking --enable-static=yes --enable-shared=no --disable-dependency-tracking --enable-commercial --disable-nls --disable-lensdata --with-expat=$EXPAT_DIR --without-libiconv-prefix --without-zlib # --with-zlib=$ZLIB_PREFIX_DIR/iphone-build --disable-xmp
-    make
+    make -j4
     make install
     doneSection
 }
@@ -182,7 +222,7 @@ buildFramework()
     BUILDDIR=$2
 
     VERSION_TYPE=Alpha
-    FRAMEWORK_NAME=exiv2
+    FRAMEWORK_NAME=libexiv2
     FRAMEWORK_VERSION=A
 
     FRAMEWORK_CURRENT_VERSION=$LIB_VERSION
@@ -249,7 +289,7 @@ EOF
 
 mkdir -p $IOSBUILDDIR
 
-# cleanEverythingReadyToStart #may want to comment if repeatedly running during dev
+cleanEverythingReadyToStart #may want to comment if repeatedly running during dev
 
 echo "LIB_VERSION:       $LIB_VERSION"
 echo "LIB_SRC:           $LIB_SRC"
@@ -261,6 +301,8 @@ echo "XCODE_ROOT:        $XCODE_ROOT"
 echo
 
 downloadExiv2
+unpackExiv2
+buildExiv2ForIPhoneOSSimulator
 unpackExiv2
 buildExiv2ForIPhoneOS
 scrunchAllLibsTogetherInOneLibPerPlatform

@@ -23,7 +23,7 @@
 #																		  #
 VERSION="2.2.3"                                                           #
 SDKVERSION="10.3"                                                          #
-MIN_VERSION="10.3"                                                         #
+MIN_VERSION="8.0"                                                         #
 #																		  #
 ###########################################################################
 #																		  #
@@ -84,7 +84,7 @@ do
     HOST="${ARCH}"
     if [ "${ARCH}" == "arm64" ];
     then
-        echo "0-----------------"
+        
         HOST="aarch64"
 
         echo "Patch..."
@@ -94,7 +94,7 @@ do
 
         #Patch readfilemap.c to support aarch64
         perl -i -pe 's|#include <stdio.h>|#include <stdio.h>$/#include <unistd.h>|g' "${CURRENTPATH}/src/expat-${VERSION}/xmlwf/readfilemap.c"
-        echo "1-----------------"
+        
     fi
 
 	mkdir -p "${CURRENTPATH}/bin/${PLATFORM}${SDKVERSION}-${ARCH}.sdk"
@@ -108,80 +108,14 @@ do
     make install >> "${LOG}" 2>&1
 	cd "${CURRENTPATH}"
 	rm -rf "${CURRENTPATH}/src/expat-${VERSION}"
-    echo "2-----------------"
+
 done
-echo "3-----------------"
+
 echo "Build library..."
 lipo -create ${CURRENTPATH}/bin/iPhoneSimulator${SDKVERSION}-i386.sdk/lib/libexpat.a ${CURRENTPATH}/bin/iPhoneSimulator${SDKVERSION}-x86_64.sdk/lib/libexpat.a ${CURRENTPATH}/bin/iPhoneOS${SDKVERSION}-armv7.sdk/lib/libexpat.a ${CURRENTPATH}/bin/iPhoneOS${SDKVERSION}-armv7s.sdk/lib/libexpat.a ${CURRENTPATH}/bin/iPhoneOS${SDKVERSION}-arm64.sdk/lib/libexpat.a -output ${CURRENTPATH}/ios/lib/libexpat.a
 lipo -info ${CURRENTPATH}/ios/lib/libexpat.a
 mkdir -p ${CURRENTPATH}/ios/include/
 cp  ${CURRENTPATH}/bin/iPhoneSimulator${SDKVERSION}-i386.sdk/include/expat* ${CURRENTPATH}/ios/include/
 echo "Building done."
-
-
-# echo "Build Framework.."
-
-# FRAMEWORKDIR:=`pwd`/ios/framework
-# BUILDDIR:="${CURRENTPATH}/bin"
-
-# VERSION_TYPE=Alpha
-# FRAMEWORK_NAME=libexpat
-# FRAMEWORK_VERSION=A
-
-# FRAMEWORK_CURRENT_VERSION=$LIB_VERSION
-# FRAMEWORK_COMPATIBILITY_VERSION=$LIB_VERSION
-
-# FRAMEWORK_BUNDLE=$FRAMEWORKDIR/$FRAMEWORK_NAME.framework
-# echo "Framework: Building $FRAMEWORK_BUNDLE from $BUILDDIR..."
-
-# rm -rf $FRAMEWORK_BUNDLE
-
-# echo "Framework: Setting up directories..."
-# mkdir -p $FRAMEWORK_BUNDLE
-# mkdir -p $FRAMEWORK_BUNDLE/Versions
-# mkdir -p $FRAMEWORK_BUNDLE/Versions/$FRAMEWORK_VERSION
-# mkdir -p $FRAMEWORK_BUNDLE/Versions/$FRAMEWORK_VERSION/Resources
-# mkdir -p $FRAMEWORK_BUNDLE/Versions/$FRAMEWORK_VERSION/Headers
-# mkdir -p $FRAMEWORK_BUNDLE/Versions/$FRAMEWORK_VERSION/Documentation
-
-# echo "Framework: Creating symlinks..."
-# ln -s $FRAMEWORK_VERSION               $FRAMEWORK_BUNDLE/Versions/Current
-# ln -s Versions/Current/Headers         $FRAMEWORK_BUNDLE/Headers
-# ln -s Versions/Current/Resources       $FRAMEWORK_BUNDLE/Resources
-# ln -s Versions/Current/Documentation   $FRAMEWORK_BUNDLE/Documentation
-# ln -s Versions/Current/$FRAMEWORK_NAME $FRAMEWORK_BUNDLE/$FRAMEWORK_NAME
-
-# FRAMEWORK_INSTALL_NAME=$FRAMEWORK_BUNDLE/Versions/$FRAMEWORK_VERSION/$FRAMEWORK_NAME
-
-# #echo "Lipoing library into $FRAMEWORK_INSTALL_NAME..."
-# #$ARM_DEV_CMD lipo -create $BUILDDIR/*/lib/libexpat.a -o "$FRAMEWORK_INSTALL_NAME" || abort "Lipo $1 failed"
-
-# echo "Framework: Copying includes..."
-# cp -r $BUILDDIR/*/include/*  $FRAMEWORK_BUNDLE/Headers/
-
-# echo "Framework: Creating plist..."
-# cat > $FRAMEWORK_BUNDLE/Resources/Info.plist <<EOF
-# <?xml version="1.0" encoding="UTF-8"?>
-# <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-# <plist version="1.0">
-# <dict>
-# <key>CFBundleDevelopmentRegion</key>
-# <string>English</string>
-# <key>CFBundleExecutable</key>
-# <string>${FRAMEWORK_NAME}</string>
-# <key>CFBundleIdentifier</key>
-# <string>io.github.libexpat</string>
-# <key>CFBundleInfoDictionaryVersion</key>
-# <string>6.0</string>
-# <key>CFBundlePackageType</key>
-# <string>FMWK</string>
-# <key>CFBundleSignature</key>
-# <string>????</string>
-# <key>CFBundleVersion</key>
-# <string>${FRAMEWORK_CURRENT_VERSION}</string>
-# </dict>
-# </plist>
-# EOF
-
 
 echo "Done."

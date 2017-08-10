@@ -9,3 +9,5 @@ exiv2/src
 exiv2/exiv2-trunk
 _expat/expat-2.2.3
 _expat/ios
+_expat/include
+_expat/lib
